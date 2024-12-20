@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .weather-container {
+            text-align: center;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+        .button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        .weather-info {
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="weather-container">
+        <h1>Weather Information</h1>
+        <button class="button" onclick="getWeather()">Get Current Weather</button>
+
+        <div class="weather-info" id="weatherInfo"></div>
+    </div>
+
+    <script>
+        const apiKey = '03cf6aeb88336735b5e74212f628aaef'; // Replace with your OpenWeatherMap API key
+
+        function getWeather() {
+            // Check if geolocation is available
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(fetchWeather, showError);
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        function fetchWeather(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.cod === 200) {
+                        const weatherInfo = document.getElementById('weatherInfo');
+                        const temperature = data.main.temp;
+                        const weather = data.weather[0].description;
+                        const location = data.name;
+                        weatherInfo.innerHTML = `
+                            <h2>Weather in ${location}</h2>
+                            <p>Temperature: ${temperature}°C</p>
+                            <p>Condition: ${weather}</p>
+                        `;
+                    } else {
+                        document.getElementById('weatherInfo').innerHTML = '<p class="error">Error retrieving weather data.</p>';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('weatherInfo').innerHTML = '<p class="error">Error retrieving weather data.</p>';
+                    console.error('Error:', error);
+                });
+        }
+
+        function showError(error) {
+            let errorMessage = '';
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    errorMessage = 'User denied the request for Geolocation.';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    errorMessage = 'Location information is unavailable.';
+                    break;
+                case error.TIMEOUT:
+                    errorMessage = 'The request to get user location timed out.';
+                    break;
+                case error.UNKNOWN_ERROR:
+                    errorMessage = 'An unknown error occurred.';
+                    break;
+            }
+            document.getElementById('weatherInfo').innerHTML = `<p class="error">${errorMessage}</p>`;
+        }
+    </script>
+
+</body>
+</html>
